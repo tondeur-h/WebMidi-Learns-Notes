@@ -10,7 +10,7 @@
         <link rel="icon" href="favicon.ico" />
         <!-- Place favicon.ico in the root directory -->
 
-        <link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/black-tie/jquery-ui.css">
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/black-tie/jquery-ui.css">
         <link href="css/main.css" rel="stylesheet" type="text/css"/>
         
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>        
@@ -420,9 +420,10 @@ function animate()
 </script>
   
     <div class="center-div">
-        <h1 style="width: 500px;text-align: center;">Apprentissage de la lecture des notes au clavier</h1>       
+       <!--<h1 style="width: 500px;text-align: center;">Apprentissage de la lecture des notes au clavier</h1>--> 
+       <div class="keyBoardWrapper"><img src="img/logo_WebMidi.png" height="100" alt=""/></div>
+       
         <canvas id="moncanvas" width="500" height="400"></canvas>
-        <br>
        
         <div>
         <div class="inner-div" style="width: 250px;height:30px;">Nombre de Notes</div>
@@ -452,8 +453,7 @@ function animate()
           <option value="toutes">Notes blanches et Altérations</option>
         </select>
         </div>
-        
-        <br>
+       
         
         <div class="btnWrapper">
                 <button class="btnPlay" id="BtnPlay" onClick="run_game();">   --PLAY!--   </button>
