@@ -31,10 +31,15 @@
             $("#sliderNotes").slider({change: function( event, ui ) {$("#Notesval").text($("#sliderNotes").slider("value"));}});
             
             $("#sliderOctave").slider({animate: true,min:1,max:2,value:1,step:1});
-            $("#sliderOctave").slider({change: function( event, ui ) {$("#Octaveval").text($("#sliderOctave").slider("value"));}});
+            $("#sliderOctave").slider({change: function( event, ui ) 
+                {
+                    $("#Octaveval").text($("#sliderOctave").slider("value"));
+                    if ($("#sliderOctave").slider("value")==1){$("#keyboard").attr("src","img/keyboard3.png");} else {$("#keyboard").attr("src","img/keyboard2.png");}
+                    
+                }});
                
-            //$("#sliderBPM").slider({animate: true,min:10,max:200,value:50,step:10});
-            //$("#sliderBPM").slider({change: function( event, ui ) {$("#BPMval").text($("#sliderBPM").slider("value"));}});
+            $("#slidernbNote").slider({animate: true,min:4,max:16,value:4,step:2});
+            $("#slidernbNote").slider({change: function( event, ui ) {$("#NBNOTEval").text($("#slidernbNote").slider("value"));}});
             
             $( "#typeNotes" ).selectmenu();
         });
@@ -76,6 +81,7 @@ var vitesseRafraichissementCanvas=50; //en millisecondes
 var score=0; //score en cours du joueur...
 var matchNote="";
 var midiKeyBoardName="Inconnu"; //nom du clavier détecté...
+var NbNoteAAfficher=4; //nombre de note a afficher sur la partition
 
 
 //On défini les groupes de notes entre C3 et C5
@@ -92,13 +98,7 @@ var positionNotes=[48,233,49,233, 50,225,51,225, 52,217, 53,209,54,209, 55,201,5
 WebMidi.enable(function (err) 
 {
     if (err) {console.log("WebMidi ne peut être activé.", err);return;}
-
-     // Viewing available MidiInputs and outputs
-     //console.log(WebMidi.inputs);
-     //console.log(WebMidi.outputs);
-     // Display the current time
-     //console.log(WebMidi.time);
-   
+ 
     // Retrieve an MidiInput by name, id or index
     MidiInput = WebMidi.inputs[0];
      //nom du clavier midi
@@ -109,11 +109,9 @@ WebMidi.enable(function (err)
 
     // Listen for a 'note on' message on all channels
     MidiInput.addListener('noteon', "all",
-        function (e) {
-                        //console.log("Received 'noteon' message (" + e.note.name + e.note.octave + " " + e.note.number + " " + e.rawVelocity + ").");
+        function (e) {                       
                         noteOn(e.note.number,e.note.name);
                     });
-    //MidiInput.addListener('noteoff', "all",function (e) {noteOff();});
 },true);
 
 
@@ -128,7 +126,6 @@ function noteOn(noteNumber, noteName)
     //affecter les valeurs courantes de la note
     currNumNote=noteNumber;
     currNameNote=noteName;
-    //currNumOctave=getOctave(noteNumber);
     currNumOctave=Math.trunc(currNumNote/12)-1;
     //jouer la note
     soundPlayer.queueWaveTable(contextAUDIO, contextAUDIO.destination, SoundFont, 0, noteNumber, portamento);
@@ -213,6 +210,9 @@ function reinit_variables()
     if ($("#Octaveval").text()==='1'){tessitureMin=60;tessitureMax=72;}
     if ($("#Octaveval").text()==='2'){tessitureMin=48;tessitureMax=72;}
     
+    NbNoteAAfficher=$("#NBNOTEval").text();
+    
+    //type de notes pour l'appprentissage blanches uniquement ou toutes les notes
     groupeNotes=$("#typeNotes").val();
 }
 
@@ -354,13 +354,40 @@ function drawNotes()
     //Dessiner les notes
     contextUI.beginPath();
     contextUI.lineWidth=3;
-    //calculer la position de la note en Y
-    positionN=positionNotes[positionNotes.indexOf(nextNumNote)+1];
-    //dessiner la note
-    contextUI.ellipse(((indexNumNote%4)*80)+190,70+positionN,8,4,0 * Math.PI/180, 0, 2 * Math.PI);
-    //dessiner le diese si nécessaire
-    drawDiese(contextUI,((indexNumNote%4)*80)+200,78+positionN,nextNumNote);  
-    contextUI.stroke();    
+    
+    pasAffichage=Math.trunc(320/NbNoteAAfficher);
+    
+    if (indexNumNote>=NbNoteAAfficher)
+    {
+    for (decalage=0;decalage<=NbNoteAAfficher-1;decalage++)
+    {
+        //calculer la position de la note par decalage
+        positionN=positionNotes[positionNotes.indexOf(liste_notes_prev[indexNumNote-decalage])+1];
+        //dessiner la note
+        contextUI.beginPath();
+        if (decalage===0){contextUI.strokeStyle='blue';} else {contextUI.strokeStyle='black';}
+        contextUI.ellipse(((((NbNoteAAfficher-1)-decalage)%NbNoteAAfficher)*pasAffichage)+160,70+positionN,8,4,0 * Math.PI/180, 0, 2 * Math.PI);
+        //dessiner le diese si nécessaire
+        drawDiese(contextUI,((((NbNoteAAfficher-1)-decalage)%NbNoteAAfficher)*pasAffichage)+170,78+positionN,liste_notes_prev[indexNumNote-decalage]);  
+        contextUI.stroke(); 
+    }  
+    }
+       else
+    {
+        for (decalage=0;decalage<indexNumNote+1;decalage++)
+    {
+        //calculer la position de la note par decalage
+        positionN=positionNotes[positionNotes.indexOf(liste_notes_prev[decalage])+1];
+        //dessiner la note
+        if (decalage>=indexNumNote){contextUI.strokeStyle='blue';} else {contextUI.strokeStyle='black';}
+        contextUI.beginPath();
+        contextUI.ellipse((((decalage)%NbNoteAAfficher)*pasAffichage)+160,70+positionN,8,4,0 * Math.PI/180, 0, 2 * Math.PI);
+        //dessiner le diese si nécessaire
+        drawDiese(contextUI,(((decalage)%NbNoteAAfficher)*pasAffichage)+170,78+positionN,liste_notes_prev[decalage]);  
+        contextUI.stroke(); 
+    }  
+    }
+       
 }
 
 
@@ -373,7 +400,7 @@ function animate()
     //afficher la note en cours
     contextUI.font = '40px serif';
     contextUI.fillStyle = 'blue';
-    contextUI.fillText("Pas : "+(indexNumNote+1)+" : "+currNameNote+currNumOctave+" ("+score+"/"+Max_Mb_Notes+")",100,30);
+    contextUI.fillText("Note#"+(indexNumNote+1)+" :: "+currNameNote+currNumOctave+" ("+score+"/"+Max_Mb_Notes+")",100,30);
     contextUI.fillStyle = 'blue';
     if (matchNote==='OK'){contextUI.fillStyle = 'green';} else {contextUI.fillStyle = 'red';}
     contextUI.fillText(matchNote,210,380);
@@ -410,13 +437,13 @@ function animate()
         <div class="inner-div" id="Octaveval" style="margin-left: 5px;">1</div>
         </div>
         
-        <!--
+        
         <div>
-        <div class="inner-div" style="width: 250px;height:30px;">BPM</div>
-        <div class="inner-div" id="sliderBPM" style="width: 200px;margin-left: 5px;margin-right:5px;"></div>
-        <div class="inner-div" id="BPMval" style="margin-left: 5px;">50</div>
+        <div class="inner-div" style="width: 250px;height:30px;">Nombre de notes a afficher</div>
+        <div class="inner-div" id="slidernbNote" style="width: 200px;margin-left: 5px;margin-right:5px;"></div>
+        <div class="inner-div" id="NBNOTEval" style="margin-left: 5px;">4</div>
         </div>
-        -->
+        
         
         <div>
         <div class="inner-div" style="width: 200px;height:30px;">Type de notes</div>
@@ -426,12 +453,17 @@ function animate()
         </select>
         </div>
         
-        </br>
+        <br>
         
         <div class="btnWrapper">
                 <button class="btnPlay" id="BtnPlay" onClick="run_game();">   --PLAY!--   </button>
         </div>
-     </div>    
+        
+        <div  class="keyBoardWrapper"><img id="keyboard" src="img/keyboard3.png" alt=""/> </div>
+ </div> 
+<div>
+    
+</div>
  
     </body>
 </html>
